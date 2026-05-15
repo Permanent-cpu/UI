@@ -109,7 +109,7 @@
   }
   .hero-avatar {
     width: 120px; height: 120px; border-radius: 50%;
-    border: 2px solid rgba120, 180, 255, 0.5;
+    border: 2px solid rgba(120, 180, 255, 0.5);
     margin: 0 auto 32px;
     display: flex; align-items: center; justify-content: center;
     background: rgba(15, 15, 15, 0.2);
@@ -250,7 +250,7 @@
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-logo">UI</div>
-    <ul class="nav-links">
+    <ul class nav-links">
       <li><a href="#about">关于</a></li>
       <li><a href="#skills">技能</a></li>
       <li><a href="#projects">项目</a></li>
@@ -392,13 +392,11 @@ let mouse = { x: -1000, y: -1000 };
 let w, h;
 let time = 0;
 
-const PARTICLE_COUNT = 120;   // 随机粒子总数
-const CONNECT_DIST = 50;
+// 粒子数量变多
+const PARTICLE_COUNT = 180;
+const CONNECT_DIST = 55;
 const INNER_RADIUS = 55;
 const MID_RADIUS = 140;
-const OUTER_RADIUS = 280;
-const WAVE_SPEED = 0.05;
-const ORBIT_RADIUS = 10;
 const PALETTE = [
   [77, 166, 255],
   [0, 230, 230],
@@ -432,21 +430,19 @@ document.addEventListener('touchend', () => {
 
 class Particle {
   constructor() {
-    // 全屏随机初始位置
     this.ox = Math.random() * w;
     this.oy = Math.random() * h;
     this.x = this.ox;
     this.y = this.oy;
     this.vx = (Math.random() - 0.5) * 0.2;
     this.vy = (Math.random() - 0.5) * 0.2;
-    this.size = Math.random() * 1.2 + 0.6;
-    this.baseOpacity = Math.random() * 0.3 + 0.4;
+    this.size = Math.random() * 1.4 + 0.8;
+    // 亮度提高
+    this.baseOpacity = Math.random() * 0.4 + 0.55;
     this.opacity = this.baseOpacity;
     this.waveX = 0;
     this.waveY = 0;
     this.color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-    this.sparkleTimer = Math.random() * 200;
-    this.sparkleSpeed = Math.random() * 0.02 + 0.01;
   }
 
   update() {
@@ -466,16 +462,14 @@ class Particle {
         const push = (1 - t) * 1.5;
         this.waveX = Math.cos(angle) * push;
         this.waveY = Math.sin(angle) * push;
-      }
-      else if (dist < MID_RADIUS) {
+      } else if (dist < MID_RADIUS) {
         const t = (dist - INNER_RADIUS) / (MID_RADIUS - INNER_RADIUS);
-        const phase = dist * 0.05 - time * WAVE_SPEED;
+        const phase = dist * 0.05 - time * 0.05;
         const amplitude = (1 - t) * 2;
         const wave = Math.sin(phase) * amplitude;
         const angle = Math.atan2(dy, dx);
         this.waveX = Math.cos(angle) * wave;
         this.waveY = Math.sin(angle) * wave;
-        targetOpacity = this.baseOpacity * (0.6 + t * 0.4);
       }
     }
 
@@ -485,28 +479,16 @@ class Particle {
     this.vy += (this.oy - this.y) * 0.0002;
     this.vx *= 0.995;
     this.vy *= 0.995;
-    this.vx += (Math.random() - 0.5) * 0.005;
-    this.vy += (Math.random() - 0.5) * 0.005;
-
     this.x += this.vx + this.waveX;
     this.y += this.vy + this.waveY;
-
-    const m = 40;
-    if (this.x < -m) this.x = w + m;
-    if (this.x > w + m) this.x = -m;
-    if (this.y < -m) this.y = h + m;
-    if (this.y > h + m) this.y = -m;
   }
 
   draw() {
-    this.sparkleTimer += this.sparkleSpeed;
-    const sparkle = 1 + Math.sin(this.sparkleTimer) * 0.3;
-    const alpha = Math.min(1, this.opacity * sparkle);
+    const alpha = this.opacity;
     const [cr, cg, cb] = this.color;
-
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(1, alpha * 1.2)})`;
+    ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha})`;
     ctx.fill();
   }
 }
@@ -517,11 +499,6 @@ function spawnParticles() {
     particles.push(new Particle());
   }
 }
-window.addEventListener('resize', () => {
-  resize();
-  spawnParticles();
-});
-resize();
 spawnParticles();
 
 function animate() {
@@ -533,82 +510,40 @@ function animate() {
     p.draw();
   }
 
+  // 连线
   for (let i = 0; i < particles.length; i++) {
     const a = particles[i];
-    if (a.opacity < 0.08) continue;
     for (let j = i + 1; j < particles.length; j++) {
       const b = particles[j];
-      if (b.opacity < 0.08) continue;
       const dx = a.x - b.x;
       const dy = a.y - b.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-
       if (dist < CONNECT_DIST) {
-        const alpha = (1 - dist / CONNECT_DIST) * 0.08;
-        const [ar, ag, ab] = a.color;
-        const [br, bg, bb] = b.color;
-        const mr = Math.round((ar + br) / 2);
-        const mg = Math.round((ag + bg) / 2);
-        const mb = Math.round((ab + bb) / 2);
+        const alpha = (1 - dist / CONNECT_DIST) * 0.12;
+        ctx.strokeStyle = `rgba(100, 160, 255, ${alpha})`;
+        ctx.lineWidth = 0.3;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = `rgba(${mr},${mg},${mb},${alpha})`;
-        ctx.lineWidth = 0.2;
         ctx.stroke();
       }
     }
   }
 
-  // 鼠标特效：大幅提亮光环 + 环绕光点
+  // 鼠标：只保留一层内层小光环
   if (mouse.x > 0) {
-    const haloHue = (time * 80) % 360;
-
-    // 高亮外层光环
     ctx.beginPath();
-    ctx.arc(mouse.x, mouse.y, 70, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${haloHue},85%,75%,0.25)`;
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    // 内层高亮圈
-    ctx.beginPath();
-    ctx.arc(mouse.x, mouse.y, 45, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${haloHue},90%,80%,0.35)`;
+    ctx.arc(mouse.x, mouse.y, 50, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(100, 180, 255, 0.3)';
     ctx.lineWidth = 1;
     ctx.stroke();
-
-    // 环绕亮点 更亮
-    const orbitAngle = time * 2.5;
-    const ox = mouse.x + Math.cos(orbitAngle) * ORBIT_RADIUS;
-    const oy = mouse.y + Math.sin(orbitAngle) * ORBIT_RADIUS;
-    ctx.beginPath();
-    ctx.arc(ox, oy, 3, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${haloHue},95%,85%,1)`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(ox, oy, 6, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${haloHue},90%,75%,0.45)`;
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    // 对立光点 提亮
-    const oa2 = orbitAngle + Math.PI;
-    const ox2 = mouse.x + Math.cos(oa2) * (ORBIT_RADIUS * 0.65);
-    const oy2 = mouse.y + Math.sin(oa2) * (ORBIT_RADIUS * 0.65);
-    const haloHue2 = (haloHue + 180) % 360;
-    ctx.beginPath();
-    ctx.arc(ox2, oy2, 2, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${haloHue2},90%,80%,0.95)`;
-    ctx.fill();
   }
 
   requestAnimationFrame(animate);
 }
-
 animate();
 
-const observer = new IntersectionObserver((entries) => {
+const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
@@ -617,8 +552,7 @@ const observer = new IntersectionObserver((entries) => {
       });
     }
   });
-}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-
+}, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 

@@ -400,7 +400,7 @@
 </section>
 
 <script>
-// Particle System
+// Particle System（优化版：大幅降粒子数、简化连线、减少发光）
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
 
@@ -408,8 +408,10 @@ let particles = [];
 let mouse = { x: -1000, y: -1000 };
 let w, h;
 let time = 0;
-const GRID_SPACING = 22;
-const CONNECT_DIST = 70;
+
+// 👇 核心优化：减少粒子数量、减少连线距离、简化发光
+const GRID_SPACING = 35;     // 粒子间距变大 = 粒子更少
+const CONNECT_DIST = 50;     // 连线距离缩短 = 连线更少
 const INNER_RADIUS = 55;
 const MID_RADIUS = 140;
 const OUTER_RADIUS = 280;
@@ -419,10 +421,6 @@ const PALETTE = [
   [77, 166, 255],   // blue
   [0, 230, 230],    // cyan
   [180, 130, 255],  // purple
-  [100, 255, 180],  // mint
-  [255, 120, 200],  // pink
-  [255, 200, 80],   // gold
-  [80, 220, 255],   // sky
 ];
 
 function resize() {
@@ -456,17 +454,17 @@ class Particle {
     this.oy = gy;
     this.x = gx + (Math.random() - 0.5) * GRID_SPACING;
     this.y = gy + (Math.random() - 0.5) * GRID_SPACING;
-    this.vx = (Math.random() - 0.5) * 0.3;
-    this.vy = (Math.random() - 0.5) * 0.3;
-    this.size = Math.random() * 1.6 + 0.8;
-    this.baseOpacity = Math.random() * 0.35 + 0.45;
+    this.vx = (Math.random() - 0.5) * 0.2; // 速度变慢
+    this.vy = (Math.random() - 0.5) * 0.2;
+    this.size = Math.random() * 1.2 + 0.6; // 粒子更小
+    this.baseOpacity = Math.random() * 0.3 + 0.4; // 透明度更低
     this.opacity = this.baseOpacity;
     this.waveX = 0;
     this.waveY = 0;
     this.color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
     this.sparkleTimer = Math.random() * 200;
-    this.sparkleSpeed = Math.random() * 0.03 + 0.01;
-    this.shape = Math.random() < 0.2 ? 'diamond' : 'circle';
+    this.sparkleSpeed = Math.random() * 0.02 + 0.01;
+    this.shape = 'circle'; // 只用圆形，去掉钻石
   }
 
   update() {
@@ -483,39 +481,30 @@ class Particle {
         const t = dist / INNER_RADIUS;
         targetOpacity = this.baseOpacity * t * t;
         const angle = Math.atan2(dy, dx);
-        const push = (1 - t) * 2.5;
+        const push = (1 - t) * 1.5; // 推力减小
         this.waveX = Math.cos(angle) * push;
         this.waveY = Math.sin(angle) * push;
       }
       else if (dist < MID_RADIUS) {
         const t = (dist - INNER_RADIUS) / (MID_RADIUS - INNER_RADIUS);
         const phase = dist * 0.05 - time * WAVE_SPEED;
-        const amplitude = (1 - t) * 3;
+        const amplitude = (1 - t) * 2; // 振幅减小
         const wave = Math.sin(phase) * amplitude;
         const angle = Math.atan2(dy, dx);
         this.waveX = Math.cos(angle) * wave;
         this.waveY = Math.sin(angle) * wave;
         targetOpacity = this.baseOpacity * (0.6 + t * 0.4);
       }
-      else if (dist < OUTER_RADIUS) {
-        const t = (dist - MID_RADIUS) / (OUTER_RADIUS - MID_RADIUS);
-        const phase = dist * 0.04 - time * WAVE_SPEED;
-        const amplitude = (1 - t) * 1.5;
-        const wave = Math.sin(phase) * amplitude;
-        const angle = Math.atan2(dy, dx);
-        this.waveX = Math.cos(angle) * wave;
-        this.waveY = Math.sin(angle) * wave;
-      }
     }
 
     this.opacity += (targetOpacity - this.opacity) * 0.08;
 
-    this.vx += (this.ox - this.x) * 0.0003;
-    this.vy += (this.oy - this.y) * 0.0003;
+    this.vx += (this.ox - this.x) * 0.0002; // 回拽力减小
+    this.vy += (this.oy - this.y) * 0.0002;
     this.vx *= 0.995;
     this.vy *= 0.995;
-    this.vx += (Math.random() - 0.5) * 0.01;
-    this.vy += (Math.random() - 0.5) * 0.01;
+    this.vx += (Math.random() - 0.5) * 0.005; // 随机抖动减小
+    this.vy += (Math.random() - 0.5) * 0.005;
 
     this.x += this.vx + this.waveX;
     this.y += this.vy + this.waveY;
@@ -528,37 +517,16 @@ class Particle {
   }
 
   draw() {
-    // Sparkle pulse
     this.sparkleTimer += this.sparkleSpeed;
-    const sparkle = 1 + Math.sin(this.sparkleTimer) * 0.5 + Math.sin(this.sparkleTimer * 3.7) * 0.3;
+    const sparkle = 1 + Math.sin(this.sparkleTimer) * 0.3; // 闪烁减弱
     const alpha = Math.min(1, this.opacity * sparkle);
     const [cr, cg, cb] = this.color;
 
-    if (this.shape === 'diamond') {
-      const s = this.size * 1.8;
-      ctx.save();
-      ctx.translate(this.x, this.y);
-      ctx.rotate(Math.PI / 4);
-      ctx.beginPath();
-      ctx.rect(-s * 0.5, -s * 0.5, s, s);
-      ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha * 0.8})`;
-      ctx.fill();
-      ctx.restore();
-    } else {
-      // Glow halo
-      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
-      grad.addColorStop(0, `rgba(${cr},${cg},${cb},${alpha})`);
-      grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
-      ctx.fill();
-      // Core
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(1, alpha * 1.3)})`;
-      ctx.fill();
-    }
+    // 简化绘制：只画实心圆，去掉发光渐变
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(1, alpha * 1.2)})`;
+    ctx.fill();
   }
 }
 
@@ -588,19 +556,19 @@ function animate() {
     p.draw();
   }
 
-  // Connections
+  // 👇 连线优化：只连近距离、低透明度
   for (let i = 0; i < particles.length; i++) {
     const a = particles[i];
-    if (a.opacity < 0.06) continue;
+    if (a.opacity < 0.08) continue;
     for (let j = i + 1; j < particles.length; j++) {
       const b = particles[j];
-      if (b.opacity < 0.06) continue;
+      if (b.opacity < 0.08) continue;
       const dx = a.x - b.x;
       const dy = a.y - b.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < CONNECT_DIST) {
-        const alpha = (1 - dist / CONNECT_DIST) * 0.15 * Math.min(a.opacity, b.opacity);
+        const alpha = (1 - dist / CONNECT_DIST) * 0.08; // 透明度大幅降低
         const [ar, ag, ab] = a.color;
         const [br, bg, bb] = b.color;
         const mr = Math.round((ar + br) / 2);
@@ -610,62 +578,20 @@ function animate() {
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.strokeStyle = `rgba(${mr},${mg},${mb},${alpha})`;
-        ctx.lineWidth = 0.3;
+        ctx.lineWidth = 0.2; // 线更细
         ctx.stroke();
       }
     }
   }
 
-  // Mouse effects
+  // 👇 鼠标效果简化：只保留简单光环，去掉复杂波纹
   if (mouse.x > 0) {
     const haloHue = (time * 80) % 360;
-
-    // Ripple rings
-    const ringCount = 3;
-    for (let r = 0; r < ringCount; r++) {
-      const ringDist = ((time * 35 + r * 50) % 140);
-      const alpha = Math.max(0, 1 - ringDist / 140) * 0.06;
-      const ringHue = (haloHue + r * 30) % 360;
-      ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, ringDist, 0, Math.PI * 2);
-      ctx.strokeStyle = `hsla(${ringHue},70%,65%,${alpha})`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // Orbiting halo
-    const orbitAngle = time * 2.5;
-    const ox = mouse.x + Math.cos(orbitAngle) * ORBIT_RADIUS;
-    const oy = mouse.y + Math.sin(orbitAngle) * ORBIT_RADIUS;
+    // 单个光环即可
     ctx.beginPath();
-    ctx.arc(ox, oy, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${haloHue},80%,70%,0.9)`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(ox, oy, 5, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${haloHue},80%,65%,0.3)`;
-    ctx.lineWidth = 0.6;
-    ctx.stroke();
-    // White edge trace
-    ctx.beginPath();
-    ctx.arc(ox, oy, 7, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(255,255,255,0.15)`;
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-
-    // Opposite dot
-    const oa2 = orbitAngle + Math.PI;
-    const ox2 = mouse.x + Math.cos(oa2) * (ORBIT_RADIUS * 0.65);
-    const oy2 = mouse.y + Math.sin(oa2) * (ORBIT_RADIUS * 0.65);
-    const haloHue2 = (haloHue + 180) % 360;
-    ctx.beginPath();
-    ctx.arc(ox2, oy2, 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${haloHue2},80%,65%,0.7)`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(ox2, oy2, 3.5, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(255,255,255,0.12)`;
-    ctx.lineWidth = 0.4;
+    ctx.arc(mouse.x, mouse.y, 60, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${haloHue},70%,65%,0.05)`;
+    ctx.lineWidth = 1;
     ctx.stroke();
   }
 

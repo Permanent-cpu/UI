@@ -32,12 +32,10 @@
     overflow-x: hidden;
   }
 
-  /* Particle Canvas */
   #particles {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
   }
 
-  /* Navigation */
   .nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     height: var(--nav-height);
@@ -76,7 +74,6 @@
   .nav-links a:hover::after,
   .nav-links a:focus-visible::after { transform: scaleX(1); }
 
-  /* Sections */
   .section { padding: 100px 24px; position: relative; z-index: 1; }
   .section-inner {
     max-width: var(--max-width); margin: 0 auto;
@@ -97,7 +94,6 @@
     width: 32px; height: 1px; background: var(--accent); opacity: 0.5;
   }
 
-  /* Hero */
   .hero {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     text-align: center; position: relative; overflow: hidden;
@@ -113,7 +109,7 @@
   }
   .hero-avatar {
     width: 120px; height: 120px; border-radius: 50%;
-    border: 2px solid rgba(120, 180, 255, 0.5);
+    border: 2px solid rgba120, 180, 255, 0.5;
     margin: 0 auto 32px;
     display: flex; align-items: center; justify-content: center;
     background: rgba(15, 15, 15, 0.2);
@@ -139,7 +135,6 @@
   }
   .hero-cta:hover { background: var(--accent-dim); box-shadow: 0 0 20px var(--accent-dim); }
 
-  /* Skills */
   .skills-grid { display: grid; gap: 48px; }
   .skill-category h3 {
     font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase;
@@ -164,7 +159,6 @@
     box-shadow: 0 0 8px var(--accent-glow);
   }
 
-  /* Projects */
   .projects-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -197,7 +191,6 @@
     background: var(--accent-dim); color: var(--accent); letter-spacing: 1px;
   }
 
-  /* Contact */
   .contact-content { text-align: center; }
   .contact-links {
     display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
@@ -224,11 +217,9 @@
   }
   .footer-text { color: var(--text-dim); font-size: 0.8rem; padding-top: 32px; border-top: 1px solid var(--border); }
 
-  /* Reveal animation */
   .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 
-  /* Responsive */
   @media (max-width: 768px) {
     .projects-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
     .hero-name { font-size: 2.2rem; }
@@ -254,10 +245,8 @@
 </head>
 <body>
 
-<!-- Particle Background -->
 <canvas id="particles"></canvas>
 
-<!-- Navigation -->
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-logo">UI</div>
@@ -270,7 +259,6 @@
   </div>
 </nav>
 
-<!-- Hero -->
 <section class="hero" id="about">
   <div class="hero-content">
     <div class="hero-avatar"><span>👤</span></div>
@@ -280,7 +268,6 @@
   </div>
 </section>
 
-<!-- Skills -->
 <section class="section" id="skills">
   <div class="section-inner">
     <h2 class="section-title reveal">技能</h2>
@@ -332,7 +319,6 @@
   </div>
 </section>
 
-<!-- Projects -->
 <section class="section" id="projects">
   <div class="section-inner">
     <h2 class="section-title reveal">项目</h2>
@@ -370,12 +356,10 @@
         </div>
       </div>
 
-
     </div>
   </div>
 </section>
 
-<!-- Contact -->
 <section class="section" id="contact">
   <div class="section-inner">
     <h2 class="section-title reveal">联系</h2>
@@ -400,7 +384,6 @@
 </section>
 
 <script>
-// Particle System（优化版：大幅降粒子数、简化连线、减少发光）
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
 
@@ -409,18 +392,17 @@ let mouse = { x: -1000, y: -1000 };
 let w, h;
 let time = 0;
 
-// 👇 核心优化：减少粒子数量、减少连线距离、简化发光
-const GRID_SPACING = 35;     // 粒子间距变大 = 粒子更少
-const CONNECT_DIST = 50;     // 连线距离缩短 = 连线更少
+const PARTICLE_COUNT = 120;   // 随机粒子总数
+const CONNECT_DIST = 50;
 const INNER_RADIUS = 55;
 const MID_RADIUS = 140;
 const OUTER_RADIUS = 280;
 const WAVE_SPEED = 0.05;
 const ORBIT_RADIUS = 10;
 const PALETTE = [
-  [77, 166, 255],   // blue
-  [0, 230, 230],    // cyan
-  [180, 130, 255],  // purple
+  [77, 166, 255],
+  [0, 230, 230],
+  [180, 130, 255],
 ];
 
 function resize() {
@@ -449,22 +431,22 @@ document.addEventListener('touchend', () => {
 });
 
 class Particle {
-  constructor(gx, gy) {
-    this.ox = gx;
-    this.oy = gy;
-    this.x = gx + (Math.random() - 0.5) * GRID_SPACING;
-    this.y = gy + (Math.random() - 0.5) * GRID_SPACING;
-    this.vx = (Math.random() - 0.5) * 0.2; // 速度变慢
+  constructor() {
+    // 全屏随机初始位置
+    this.ox = Math.random() * w;
+    this.oy = Math.random() * h;
+    this.x = this.ox;
+    this.y = this.oy;
+    this.vx = (Math.random() - 0.5) * 0.2;
     this.vy = (Math.random() - 0.5) * 0.2;
-    this.size = Math.random() * 1.2 + 0.6; // 粒子更小
-    this.baseOpacity = Math.random() * 0.3 + 0.4; // 透明度更低
+    this.size = Math.random() * 1.2 + 0.6;
+    this.baseOpacity = Math.random() * 0.3 + 0.4;
     this.opacity = this.baseOpacity;
     this.waveX = 0;
     this.waveY = 0;
     this.color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
     this.sparkleTimer = Math.random() * 200;
     this.sparkleSpeed = Math.random() * 0.02 + 0.01;
-    this.shape = 'circle'; // 只用圆形，去掉钻石
   }
 
   update() {
@@ -481,14 +463,14 @@ class Particle {
         const t = dist / INNER_RADIUS;
         targetOpacity = this.baseOpacity * t * t;
         const angle = Math.atan2(dy, dx);
-        const push = (1 - t) * 1.5; // 推力减小
+        const push = (1 - t) * 1.5;
         this.waveX = Math.cos(angle) * push;
         this.waveY = Math.sin(angle) * push;
       }
       else if (dist < MID_RADIUS) {
         const t = (dist - INNER_RADIUS) / (MID_RADIUS - INNER_RADIUS);
         const phase = dist * 0.05 - time * WAVE_SPEED;
-        const amplitude = (1 - t) * 2; // 振幅减小
+        const amplitude = (1 - t) * 2;
         const wave = Math.sin(phase) * amplitude;
         const angle = Math.atan2(dy, dx);
         this.waveX = Math.cos(angle) * wave;
@@ -499,11 +481,11 @@ class Particle {
 
     this.opacity += (targetOpacity - this.opacity) * 0.08;
 
-    this.vx += (this.ox - this.x) * 0.0002; // 回拽力减小
+    this.vx += (this.ox - this.x) * 0.0002;
     this.vy += (this.oy - this.y) * 0.0002;
     this.vx *= 0.995;
     this.vy *= 0.995;
-    this.vx += (Math.random() - 0.5) * 0.005; // 随机抖动减小
+    this.vx += (Math.random() - 0.5) * 0.005;
     this.vy += (Math.random() - 0.5) * 0.005;
 
     this.x += this.vx + this.waveX;
@@ -518,11 +500,10 @@ class Particle {
 
   draw() {
     this.sparkleTimer += this.sparkleSpeed;
-    const sparkle = 1 + Math.sin(this.sparkleTimer) * 0.3; // 闪烁减弱
+    const sparkle = 1 + Math.sin(this.sparkleTimer) * 0.3;
     const alpha = Math.min(1, this.opacity * sparkle);
     const [cr, cg, cb] = this.color;
 
-    // 简化绘制：只画实心圆，去掉发光渐变
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(1, alpha * 1.2)})`;
@@ -532,12 +513,8 @@ class Particle {
 
 function spawnParticles() {
   particles = [];
-  const cols = Math.ceil(w / GRID_SPACING) + 1;
-  const rows = Math.ceil(h / GRID_SPACING) + 1;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      particles.push(new Particle(c * GRID_SPACING, r * GRID_SPACING));
-    }
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(new Particle());
   }
 }
 window.addEventListener('resize', () => {
@@ -556,7 +533,6 @@ function animate() {
     p.draw();
   }
 
-  // 👇 连线优化：只连近距离、低透明度
   for (let i = 0; i < particles.length; i++) {
     const a = particles[i];
     if (a.opacity < 0.08) continue;
@@ -568,7 +544,7 @@ function animate() {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < CONNECT_DIST) {
-        const alpha = (1 - dist / CONNECT_DIST) * 0.08; // 透明度大幅降低
+        const alpha = (1 - dist / CONNECT_DIST) * 0.08;
         const [ar, ag, ab] = a.color;
         const [br, bg, bb] = b.color;
         const mr = Math.round((ar + br) / 2);
@@ -578,21 +554,53 @@ function animate() {
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.strokeStyle = `rgba(${mr},${mg},${mb},${alpha})`;
-        ctx.lineWidth = 0.2; // 线更细
+        ctx.lineWidth = 0.2;
         ctx.stroke();
       }
     }
   }
 
-  // 👇 鼠标效果简化：只保留简单光环，去掉复杂波纹
+  // 鼠标特效：大幅提亮光环 + 环绕光点
   if (mouse.x > 0) {
     const haloHue = (time * 80) % 360;
-    // 单个光环即可
+
+    // 高亮外层光环
     ctx.beginPath();
-    ctx.arc(mouse.x, mouse.y, 60, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${haloHue},70%,65%,0.05)`;
+    ctx.arc(mouse.x, mouse.y, 70, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${haloHue},85%,75%,0.25)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // 内层高亮圈
+    ctx.beginPath();
+    ctx.arc(mouse.x, mouse.y, 45, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${haloHue},90%,80%,0.35)`;
     ctx.lineWidth = 1;
     ctx.stroke();
+
+    // 环绕亮点 更亮
+    const orbitAngle = time * 2.5;
+    const ox = mouse.x + Math.cos(orbitAngle) * ORBIT_RADIUS;
+    const oy = mouse.y + Math.sin(orbitAngle) * ORBIT_RADIUS;
+    ctx.beginPath();
+    ctx.arc(ox, oy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${haloHue},95%,85%,1)`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ox, oy, 6, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${haloHue},90%,75%,0.45)`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // 对立光点 提亮
+    const oa2 = orbitAngle + Math.PI;
+    const ox2 = mouse.x + Math.cos(oa2) * (ORBIT_RADIUS * 0.65);
+    const oy2 = mouse.y + Math.sin(oa2) * (ORBIT_RADIUS * 0.65);
+    const haloHue2 = (haloHue + 180) % 360;
+    ctx.beginPath();
+    ctx.arc(ox2, oy2, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${haloHue2},90%,80%,0.95)`;
+    ctx.fill();
   }
 
   requestAnimationFrame(animate);
@@ -600,7 +608,6 @@ function animate() {
 
 animate();
 
-// Reveal on scroll
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {

@@ -32,10 +32,12 @@
     overflow-x: hidden;
   }
 
+  /* Particle Canvas */
   #particles {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
   }
 
+  /* Navigation */
   .nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     height: var(--nav-height);
@@ -74,6 +76,7 @@
   .nav-links a:hover::after,
   .nav-links a:focus-visible::after { transform: scaleX(1); }
 
+  /* Sections */
   .section { padding: 100px 24px; position: relative; z-index: 1; }
   .section-inner {
     max-width: var(--max-width); margin: 0 auto;
@@ -94,6 +97,7 @@
     width: 32px; height: 1px; background: var(--accent); opacity: 0.5;
   }
 
+  /* Hero */
   .hero {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     text-align: center; position: relative; overflow: hidden;
@@ -135,6 +139,7 @@
   }
   .hero-cta:hover { background: var(--accent-dim); box-shadow: 0 0 20px var(--accent-dim); }
 
+  /* Skills */
   .skills-grid { display: grid; gap: 48px; }
   .skill-category h3 {
     font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase;
@@ -159,6 +164,7 @@
     box-shadow: 0 0 8px var(--accent-glow);
   }
 
+  /* Projects */
   .projects-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -191,6 +197,7 @@
     background: var(--accent-dim); color: var(--accent); letter-spacing: 1px;
   }
 
+  /* Contact */
   .contact-content { text-align: center; }
   .contact-links {
     display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
@@ -217,9 +224,11 @@
   }
   .footer-text { color: var(--text-dim); font-size: 0.8rem; padding-top: 32px; border-top: 1px solid var(--border); }
 
+  /* Reveal animation */
   .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 
+  /* Responsive */
   @media (max-width: 768px) {
     .projects-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
     .hero-name { font-size: 2.2rem; }
@@ -245,12 +254,14 @@
 </head>
 <body>
 
+<!-- Particle Background -->
 <canvas id="particles"></canvas>
 
+<!-- Navigation -->
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-logo">UI</div>
-    <ul class nav-links">
+    <ul class="nav-links">
       <li><a href="#about">关于</a></li>
       <li><a href="#skills">技能</a></li>
       <li><a href="#projects">项目</a></li>
@@ -259,6 +270,7 @@
   </div>
 </nav>
 
+<!-- Hero -->
 <section class="hero" id="about">
   <div class="hero-content">
     <div class="hero-avatar"><span>👤</span></div>
@@ -268,6 +280,7 @@
   </div>
 </section>
 
+<!-- Skills -->
 <section class="section" id="skills">
   <div class="section-inner">
     <h2 class="section-title reveal">技能</h2>
@@ -319,6 +332,7 @@
   </div>
 </section>
 
+<!-- Projects -->
 <section class="section" id="projects">
   <div class="section-inner">
     <h2 class="section-title reveal">项目</h2>
@@ -356,10 +370,12 @@
         </div>
       </div>
 
+
     </div>
   </div>
 </section>
 
+<!-- Contact -->
 <section class="section" id="contact">
   <div class="section-inner">
     <h2 class="section-title reveal">联系</h2>
@@ -384,6 +400,7 @@
 </section>
 
 <script>
+// Particle System
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
 
@@ -391,16 +408,21 @@ let particles = [];
 let mouse = { x: -1000, y: -1000 };
 let w, h;
 let time = 0;
-
-// 粒子数量变多
-const PARTICLE_COUNT = 180;
-const CONNECT_DIST = 55;
+const GRID_SPACING = 22;
+const CONNECT_DIST = 70;
 const INNER_RADIUS = 55;
 const MID_RADIUS = 140;
+const OUTER_RADIUS = 280;
+const WAVE_SPEED = 0.05;
+const ORBIT_RADIUS = 10;
 const PALETTE = [
-  [77, 166, 255],
-  [0, 230, 230],
-  [180, 130, 255],
+  [77, 166, 255],   // blue
+  [0, 230, 230],    // cyan
+  [180, 130, 255],  // purple
+  [100, 255, 180],  // mint
+  [255, 120, 200],  // pink
+  [255, 200, 80],   // gold
+  [80, 220, 255],   // sky
 ];
 
 function resize() {
@@ -429,20 +451,22 @@ document.addEventListener('touchend', () => {
 });
 
 class Particle {
-  constructor() {
-    this.ox = Math.random() * w;
-    this.oy = Math.random() * h;
-    this.x = this.ox;
-    this.y = this.oy;
-    this.vx = (Math.random() - 0.5) * 0.2;
-    this.vy = (Math.random() - 0.5) * 0.2;
-    this.size = Math.random() * 1.4 + 0.8;
-    // 亮度提高
-    this.baseOpacity = Math.random() * 0.4 + 0.55;
+  constructor(gx, gy) {
+    this.ox = gx;
+    this.oy = gy;
+    this.x = gx + (Math.random() - 0.5) * GRID_SPACING;
+    this.y = gy + (Math.random() - 0.5) * GRID_SPACING;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.vy = (Math.random() - 0.5) * 0.3;
+    this.size = Math.random() * 1.6 + 0.8;
+    this.baseOpacity = Math.random() * 0.35 + 0.45;
     this.opacity = this.baseOpacity;
     this.waveX = 0;
     this.waveY = 0;
     this.color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+    this.sparkleTimer = Math.random() * 200;
+    this.sparkleSpeed = Math.random() * 0.03 + 0.01;
+    this.shape = Math.random() < 0.2 ? 'diamond' : 'circle';
   }
 
   update() {
@@ -459,13 +483,24 @@ class Particle {
         const t = dist / INNER_RADIUS;
         targetOpacity = this.baseOpacity * t * t;
         const angle = Math.atan2(dy, dx);
-        const push = (1 - t) * 1.5;
+        const push = (1 - t) * 2.5;
         this.waveX = Math.cos(angle) * push;
         this.waveY = Math.sin(angle) * push;
-      } else if (dist < MID_RADIUS) {
+      }
+      else if (dist < MID_RADIUS) {
         const t = (dist - INNER_RADIUS) / (MID_RADIUS - INNER_RADIUS);
-        const phase = dist * 0.05 - time * 0.05;
-        const amplitude = (1 - t) * 2;
+        const phase = dist * 0.05 - time * WAVE_SPEED;
+        const amplitude = (1 - t) * 3;
+        const wave = Math.sin(phase) * amplitude;
+        const angle = Math.atan2(dy, dx);
+        this.waveX = Math.cos(angle) * wave;
+        this.waveY = Math.sin(angle) * wave;
+        targetOpacity = this.baseOpacity * (0.6 + t * 0.4);
+      }
+      else if (dist < OUTER_RADIUS) {
+        const t = (dist - MID_RADIUS) / (OUTER_RADIUS - MID_RADIUS);
+        const phase = dist * 0.04 - time * WAVE_SPEED;
+        const amplitude = (1 - t) * 1.5;
         const wave = Math.sin(phase) * amplitude;
         const angle = Math.atan2(dy, dx);
         this.waveX = Math.cos(angle) * wave;
@@ -475,30 +510,73 @@ class Particle {
 
     this.opacity += (targetOpacity - this.opacity) * 0.08;
 
-    this.vx += (this.ox - this.x) * 0.0002;
-    this.vy += (this.oy - this.y) * 0.0002;
+    this.vx += (this.ox - this.x) * 0.0003;
+    this.vy += (this.oy - this.y) * 0.0003;
     this.vx *= 0.995;
     this.vy *= 0.995;
+    this.vx += (Math.random() - 0.5) * 0.01;
+    this.vy += (Math.random() - 0.5) * 0.01;
+
     this.x += this.vx + this.waveX;
     this.y += this.vy + this.waveY;
+
+    const m = 40;
+    if (this.x < -m) this.x = w + m;
+    if (this.x > w + m) this.x = -m;
+    if (this.y < -m) this.y = h + m;
+    if (this.y > h + m) this.y = -m;
   }
 
   draw() {
-    const alpha = this.opacity;
+    // Sparkle pulse
+    this.sparkleTimer += this.sparkleSpeed;
+    const sparkle = 1 + Math.sin(this.sparkleTimer) * 0.5 + Math.sin(this.sparkleTimer * 3.7) * 0.3;
+    const alpha = Math.min(1, this.opacity * sparkle);
     const [cr, cg, cb] = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha})`;
-    ctx.fill();
+
+    if (this.shape === 'diamond') {
+      const s = this.size * 1.8;
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.beginPath();
+      ctx.rect(-s * 0.5, -s * 0.5, s, s);
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha * 0.8})`;
+      ctx.fill();
+      ctx.restore();
+    } else {
+      // Glow halo
+      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
+      grad.addColorStop(0, `rgba(${cr},${cg},${cb},${alpha})`);
+      grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Core
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(1, alpha * 1.3)})`;
+      ctx.fill();
+    }
   }
 }
 
 function spawnParticles() {
   particles = [];
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    particles.push(new Particle());
+  const cols = Math.ceil(w / GRID_SPACING) + 1;
+  const rows = Math.ceil(h / GRID_SPACING) + 1;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      particles.push(new Particle(c * GRID_SPACING, r * GRID_SPACING));
+    }
   }
 }
+window.addEventListener('resize', () => {
+  resize();
+  spawnParticles();
+});
+resize();
 spawnParticles();
 
 function animate() {
@@ -510,40 +588,94 @@ function animate() {
     p.draw();
   }
 
-  // 连线
+  // Connections
   for (let i = 0; i < particles.length; i++) {
     const a = particles[i];
+    if (a.opacity < 0.06) continue;
     for (let j = i + 1; j < particles.length; j++) {
       const b = particles[j];
+      if (b.opacity < 0.06) continue;
       const dx = a.x - b.x;
       const dy = a.y - b.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
+
       if (dist < CONNECT_DIST) {
-        const alpha = (1 - dist / CONNECT_DIST) * 0.12;
-        ctx.strokeStyle = `rgba(100, 160, 255, ${alpha})`;
-        ctx.lineWidth = 0.3;
+        const alpha = (1 - dist / CONNECT_DIST) * 0.15 * Math.min(a.opacity, b.opacity);
+        const [ar, ag, ab] = a.color;
+        const [br, bg, bb] = b.color;
+        const mr = Math.round((ar + br) / 2);
+        const mg = Math.round((ag + bg) / 2);
+        const mb = Math.round((ab + bb) / 2);
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(${mr},${mg},${mb},${alpha})`;
+        ctx.lineWidth = 0.3;
         ctx.stroke();
       }
     }
   }
 
-  // 鼠标：只保留一层内层小光环
+  // Mouse effects
   if (mouse.x > 0) {
+    const haloHue = (time * 80) % 360;
+
+    // Ripple rings
+    const ringCount = 3;
+    for (let r = 0; r < ringCount; r++) {
+      const ringDist = ((time * 35 + r * 50) % 140);
+      const alpha = Math.max(0, 1 - ringDist / 140) * 0.06;
+      const ringHue = (haloHue + r * 30) % 360;
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, ringDist, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${ringHue},70%,65%,${alpha})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Orbiting halo
+    const orbitAngle = time * 2.5;
+    const ox = mouse.x + Math.cos(orbitAngle) * ORBIT_RADIUS;
+    const oy = mouse.y + Math.sin(orbitAngle) * ORBIT_RADIUS;
     ctx.beginPath();
-    ctx.arc(mouse.x, mouse.y, 50, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(100, 180, 255, 0.3)';
-    ctx.lineWidth = 1;
+    ctx.arc(ox, oy, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${haloHue},80%,70%,0.9)`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ox, oy, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${haloHue},80%,65%,0.3)`;
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+    // White edge trace
+    ctx.beginPath();
+    ctx.arc(ox, oy, 7, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255,255,255,0.15)`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Opposite dot
+    const oa2 = orbitAngle + Math.PI;
+    const ox2 = mouse.x + Math.cos(oa2) * (ORBIT_RADIUS * 0.65);
+    const oy2 = mouse.y + Math.sin(oa2) * (ORBIT_RADIUS * 0.65);
+    const haloHue2 = (haloHue + 180) % 360;
+    ctx.beginPath();
+    ctx.arc(ox2, oy2, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${haloHue2},80%,65%,0.7)`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ox2, oy2, 3.5, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255,255,255,0.12)`;
+    ctx.lineWidth = 0.4;
     ctx.stroke();
   }
 
   requestAnimationFrame(animate);
 }
+
 animate();
 
-const observer = new IntersectionObserver(entries => {
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
@@ -552,7 +684,8 @@ const observer = new IntersectionObserver(entries => {
       });
     }
   });
-}, { threshold: 0.15 });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 
